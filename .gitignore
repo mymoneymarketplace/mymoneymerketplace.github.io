@@ -1,3 +1,5 @@
 .env
 google-credentials.json
+google-credentials.json.json
 node_modules/
+
