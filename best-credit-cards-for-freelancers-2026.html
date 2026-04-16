@@ -366,7 +366,8 @@
     </section>
 
     
-<!-- lead-capture-v1 -->
+
+<!-- lead-capture-v2 -->
 <div class="lead-capture-section">
   <div class="lead-capture-box">
     <h3>Not Sure Which Card to Pick?</h3>
@@ -389,6 +390,29 @@
 </div>
 <script>
 (function(){
+  function parsePageUrl(pathname) {
+    var slug = (pathname || '').replace(/^\/+|\/+$/g, '').replace(/\.html$/, '').split(/[?#]/)[0].toLowerCase();
+    var yearMatch = slug.match(/^(.+)-(20\d{2})$/);
+    var core = yearMatch ? yearMatch[1] : slug;
+    var m;
+    if ((m = core.match(/^personal-loans-for-(.+)$/))) return { leadType: 'personal-loans', specificNeed: m[1], profession: '', city: '' };
+    if ((m = core.match(/^best-credit-cards-for-(.+)$/))) return { leadType: 'credit-cards', profession: m[1], specificNeed: '', city: '' };
+    if (core === 'best-cash-back-credit-cards') return { leadType: 'credit-cards', specificNeed: 'cash-back', profession: '', city: '' };
+    if ((m = core.match(/^best-credit-cards-(.+)$/))) return { leadType: 'credit-cards', specificNeed: m[1], profession: '', city: '' };
+    if ((m = core.match(/^business-loans-(.+)-([a-z]{2})$/))) return { leadType: 'business-loans', city: m[1], specificNeed: '', profession: '' };
+    if (/^business-loans/.test(core)) return { leadType: 'business-loans', specificNeed: '', profession: '', city: '' };
+    if (/^personal-loans/.test(core)) return { leadType: 'personal-loans', specificNeed: '', profession: '', city: '' };
+    if (/^best-/.test(core)) return { leadType: 'credit-cards', specificNeed: '', profession: '', city: '' };
+    return { leadType: 'personal-loans', specificNeed: '', profession: '', city: '' };
+  }
+
+  function getUtm(name) {
+    try {
+      var v = new URLSearchParams(window.location.search).get(name);
+      return v || '';
+    } catch (e) { return ''; }
+  }
+
   window.submitLead = async function(e) {
     e.preventDefault();
     var form = e.target;
@@ -397,24 +421,25 @@
     btn.textContent = 'Sending...';
     btn.disabled = true;
 
+    var seg = parsePageUrl(window.location.pathname);
     var data = {
       firstName: document.getElementById('firstName').value.trim(),
       email: document.getElementById('email').value.trim(),
-      leadType: "credit-cards",
+      leadType: seg.leadType,
+      specificNeed: seg.specificNeed,
+      profession: seg.profession,
+      city: seg.city,
       referrerPage: window.location.pathname,
-      campaign: "best-credit-cards-for-freelancers-2026",
-      utmSource: 'organic',
-      utmMedium: 'parasite',
+      utmSource: getUtm('utm_source') || 'organic',
+      utmMedium: getUtm('utm_medium') || 'parasite',
+      utmCampaign: getUtm('utm_campaign') || (window.location.pathname.replace(/^\/+|\/+$/g, '').replace(/\.html$/, '')),
       timestamp: new Date().toISOString()
     };
 
     try {
-      // Direct Zapier webhook (works from static pages).
       await fetch("https://hooks.zapier.com/hooks/catch/12944636/ujtnxoz/", {
         method: 'POST',
         body: JSON.stringify(data)
-        // Note: no Content-Type header so the browser treats this as a simple
-        // CORS request. Zapier accepts either form.
       });
 
       form.style.display = 'none';
@@ -423,6 +448,9 @@
       if (window.gtag) {
         gtag('event', 'lead_capture', {
           lead_type: data.leadType,
+          specific_need: data.specificNeed,
+          profession: data.profession,
+          city: data.city,
           page: window.location.pathname
         });
       }

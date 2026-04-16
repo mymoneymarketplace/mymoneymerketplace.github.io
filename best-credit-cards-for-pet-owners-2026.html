@@ -149,7 +149,8 @@
     <section id="how-to-choose" class="how-to-choose"><div class="container"><h2>How to Choose the Right Card as a Pet Owner</h2><div class="choose-item"><div class="choose-icon" style="background:#edf5f0;"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2L12.5 7.5H18L13.5 11.5L15.5 17L10 13.5L4.5 17L6.5 11.5L2 7.5H7.5L10 2Z" fill="#2d6a4f"/></svg></div><h3>1. Consider where you buy most of your pet supplies</h3><p>If you order primarily from Chewy or Amazon, the Amazon Prime Rewards Visa at 5% is the clear winner. If you buy pet food at the grocery store during your weekly shopping trip, the Blue Cash Preferred at 6% on supermarkets earns more per dollar. If you shop at dedicated pet stores like PetSmart or Petco, the Citi Custom Cash can earn 5% automatically. Match your card to your shopping habits.</p></div><div class="choose-item"><div class="choose-icon" style="background:#e3f2fd;"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#2d6a4f" stroke-width="1.5" fill="none"/><path d="M10 6v4l3 3" stroke="#2d6a4f" stroke-width="1.5" stroke-linecap="round"/></svg></div><h3>2. Plan for emergency vet costs</h3><p>Emergency vet bills can reach $1,000-$5,000 or more without warning. Having a card with a 0% intro APR like the Discover it Cash Back provides a financial safety net for these situations. Even if you have pet insurance, you often need to pay the vet upfront and wait for reimbursement. A dedicated emergency card with available credit can prevent financial stress during a pet health crisis.</p></div><div class="choose-item"><div class="choose-icon" style="background:#fff3e0;"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="10" rx="2" stroke="#2d6a4f" stroke-width="1.5" fill="none"/><path d="M3 9h14" stroke="#2d6a4f" stroke-width="1.5"/></svg></div><h3>3. Factor in all pet-related expenses, not just food</h3><p>Pet owners often focus on food costs but forget about grooming ($50-$100 per visit), boarding ($30-$75 per night), vet checkups ($200-$400 per year), pet insurance ($25-$50 per month), and supplies. A flat-rate card like the Wells Fargo Active Cash earns 2% on ALL of these expenses without worrying about categories. If your pet spending is spread across many vendors, simplicity wins.</p></div></div></section>
     <section class="mid-cta"><h3>Find the Best Card for Your Pet</h3><p>Compare cards matched to how pet owners actually spend</p><a href="https://www.cardratings.com/bestcards/cash-back-credit-cards.php?src=705663" class="mid-cta-btn">Compare All Cards &rarr;</a><p class="mid-cta-small">No impact to credit score to compare options</p></section>
     
-<!-- lead-capture-v1 -->
+
+<!-- lead-capture-v2 -->
 <div class="lead-capture-section">
   <div class="lead-capture-box">
     <h3>Not Sure Which Card to Pick?</h3>
@@ -172,6 +173,29 @@
 </div>
 <script>
 (function(){
+  function parsePageUrl(pathname) {
+    var slug = (pathname || '').replace(/^\/+|\/+$/g, '').replace(/\.html$/, '').split(/[?#]/)[0].toLowerCase();
+    var yearMatch = slug.match(/^(.+)-(20\d{2})$/);
+    var core = yearMatch ? yearMatch[1] : slug;
+    var m;
+    if ((m = core.match(/^personal-loans-for-(.+)$/))) return { leadType: 'personal-loans', specificNeed: m[1], profession: '', city: '' };
+    if ((m = core.match(/^best-credit-cards-for-(.+)$/))) return { leadType: 'credit-cards', profession: m[1], specificNeed: '', city: '' };
+    if (core === 'best-cash-back-credit-cards') return { leadType: 'credit-cards', specificNeed: 'cash-back', profession: '', city: '' };
+    if ((m = core.match(/^best-credit-cards-(.+)$/))) return { leadType: 'credit-cards', specificNeed: m[1], profession: '', city: '' };
+    if ((m = core.match(/^business-loans-(.+)-([a-z]{2})$/))) return { leadType: 'business-loans', city: m[1], specificNeed: '', profession: '' };
+    if (/^business-loans/.test(core)) return { leadType: 'business-loans', specificNeed: '', profession: '', city: '' };
+    if (/^personal-loans/.test(core)) return { leadType: 'personal-loans', specificNeed: '', profession: '', city: '' };
+    if (/^best-/.test(core)) return { leadType: 'credit-cards', specificNeed: '', profession: '', city: '' };
+    return { leadType: 'personal-loans', specificNeed: '', profession: '', city: '' };
+  }
+
+  function getUtm(name) {
+    try {
+      var v = new URLSearchParams(window.location.search).get(name);
+      return v || '';
+    } catch (e) { return ''; }
+  }
+
   window.submitLead = async function(e) {
     e.preventDefault();
     var form = e.target;
@@ -180,24 +204,25 @@
     btn.textContent = 'Sending...';
     btn.disabled = true;
 
+    var seg = parsePageUrl(window.location.pathname);
     var data = {
       firstName: document.getElementById('firstName').value.trim(),
       email: document.getElementById('email').value.trim(),
-      leadType: "credit-cards",
+      leadType: seg.leadType,
+      specificNeed: seg.specificNeed,
+      profession: seg.profession,
+      city: seg.city,
       referrerPage: window.location.pathname,
-      campaign: "best-credit-cards-for-pet-owners-2026",
-      utmSource: 'organic',
-      utmMedium: 'parasite',
+      utmSource: getUtm('utm_source') || 'organic',
+      utmMedium: getUtm('utm_medium') || 'parasite',
+      utmCampaign: getUtm('utm_campaign') || (window.location.pathname.replace(/^\/+|\/+$/g, '').replace(/\.html$/, '')),
       timestamp: new Date().toISOString()
     };
 
     try {
-      // Direct Zapier webhook (works from static pages).
       await fetch("https://hooks.zapier.com/hooks/catch/12944636/ujtnxoz/", {
         method: 'POST',
         body: JSON.stringify(data)
-        // Note: no Content-Type header so the browser treats this as a simple
-        // CORS request. Zapier accepts either form.
       });
 
       form.style.display = 'none';
@@ -206,6 +231,9 @@
       if (window.gtag) {
         gtag('event', 'lead_capture', {
           lead_type: data.leadType,
+          specific_need: data.specificNeed,
+          profession: data.profession,
+          city: data.city,
           page: window.location.pathname
         });
       }
